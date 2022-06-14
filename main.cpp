@@ -7,7 +7,7 @@ int main(int argc, char* argv[]) {
     SDL_Window*     window = nullptr;
     SDL_Renderer*   renderer = nullptr;
     if ( SDL_Init(SDL_INIT_EVERYTHING) == 0 ) {
-        window = SDL_CreateWindow("byo boy", 100, 100, 800, 600, SDL_WINDOW_SHOWN);
+        window = SDL_CreateWindow("ComputerGraphics", 100, 100, 800, 600, SDL_WINDOW_SHOWN);
         renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     }
 

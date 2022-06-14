@@ -5,7 +5,7 @@
 #include <iostream>
 #include <iterator>
 
-const uint8_t ALGOLine::kTotalWays= 2;
+const uint8_t ALGOLine::kTotalWays= 3;
 
 ALGOLine::ALGOLine()  { 
     point_num_ = 0;
@@ -23,6 +23,9 @@ void ALGOLine::SwitchWay() {
         break;
     case kMidPoint:
         draw_line_way_ = &ALGOLine::DrawLine_MidPoint;
+        break;
+    case kBresenham:
+        draw_line_way_ = &ALGOLine::DrawLine_Bresenham;
         break;
     }
 }
@@ -125,14 +128,16 @@ void ALGOLine::DrawLine_DDA(SDL_Renderer* renderer) {
     }
 }
 
+// 四个while循环分别掌管四种斜率范围直线的绘制
+
 // 中点画线法
 // 利用直线的一般式方程F(x, y) = Ax+By+C
 // A=y2-y1, B=x1-x2, C=x2y1-x1y2
-// d0=2A+B, d1=d0+2A+2B
+// d0=2A+B, d1=d0+2A+2B y=y+1，或者d1=d0+2A y=y
 // 只需要d的符号
 // 注意笛卡尔坐标系y增长方向是往下，所以要把我们平时理解的下方向在这里当作上方向  
 void ALGOLine::DrawLine_MidPoint(SDL_Renderer *renderer) {
-    if (p2_.x == p1_.x) {  // k = ∞
+    if (p2_.x == p1_.x) {  // k不存在
         ChosePointByY();
         while (aim_point_.y <= end_point_.y) {
             SDL_RenderDrawPoint(renderer, aim_point_.x, aim_point_.y);
@@ -152,30 +157,45 @@ void ALGOLine::DrawLine_MidPoint(SDL_Renderer *renderer) {
 
     if (abs(p2_.y-p1_.y) < abs(p2_.x-p1_.x)) {  // |k|<1
         ChosePointByY();  // 选择y坐标小的作为起始点，以x为步进方向，+1或者-1，y要么不变要么+1
-        int A = end_point_.y - aim_point_.y;
-        int B = aim_point_.x - end_point_.x;
+        int A = aim_point_.y - end_point_.y;
+        int B = end_point_.x - aim_point_.x;
         if (B < 0) {       // 一般式y的系数>0时，计算结果<0点在直线下方
             B = -B;
             A = -A;
         }
 
-        int step = 1;
-        if (aim_point_.x > end_point_.x) {  // x步进-1，d的计算方式要改
-            step = -1;
-        }
-        A = step * A;
-        int d = A + A + B;
-
-        while (aim_point_.x != end_point_.x) {
-            SDL_SetRenderDrawColor(renderer, 0, 255,  0, 255);
-            SDL_RenderDrawPoint(renderer, aim_point_.x, aim_point_.y);
-            aim_point_.x += step;
-            if (d < 0) {
-                ++aim_point_.y;
-                d = d + A + A + B + B;
+        if (aim_point_.x < end_point_.x) {
+            int d = (A << 1) + B;
+            int d1 = (A+B) << 1;  // 2*(A+B)
+            int d2 = A << 1;      // 2*A
+            while (aim_point_.x <= end_point_.x) {
+                SDL_SetRenderDrawColor(renderer, 0, 255,  0, 255);
+                SDL_RenderDrawPoint(renderer, aim_point_.x, aim_point_.y);
+                ++aim_point_.x;
+                if (d < 0) {
+                    ++aim_point_.y;
+                    d = d + d1;
+                }
+                else {
+                    d = d + d2;
+                }
             }
-            else {
-                d = d + A;
+        }
+        else {
+            int d = -(A<<1) + B;
+            int d1 = (B-A) << 1;  // 2*(B-A)
+            int d2 = -A << 1;      // -2*A
+            while (aim_point_.x >= end_point_.x) {
+                SDL_SetRenderDrawColor(renderer, 0, 255,  0, 255);
+                SDL_RenderDrawPoint(renderer, aim_point_.x, aim_point_.y);
+                --aim_point_.x;
+                if (d < 0) {
+                    ++aim_point_.y;
+                    d = d + d1;
+                }
+                else {
+                    d = d + d2;
+                }
             }
         }
     }
@@ -188,23 +208,129 @@ void ALGOLine::DrawLine_MidPoint(SDL_Renderer *renderer) {
             A = -A;
         }
 
-        int step = 1;
-        if (aim_point_.y > end_point_.y) {
-            step = -1;
-        }
-        A = step * A;
-        int d = A + A + B;
-
-        while (aim_point_.y != end_point_.y) {
-            SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-            SDL_RenderDrawPoint(renderer, aim_point_.x, aim_point_.y);
-            aim_point_.y += step;
-            if (d < 0) {
-                ++aim_point_.x;
-                d = d + A + A + B + B;
+        if (aim_point_.y < end_point_.y) {
+            int d = (A << 1) + B;
+            int d1 = (A+B) << 1;  // 2*(A+B)
+            int d2 = A << 1;      // 2*A
+            while (aim_point_.y <= end_point_.y) {
+                SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+                SDL_RenderDrawPoint(renderer, aim_point_.x, aim_point_.y);
+                ++aim_point_.y;
+                if (d < 0) {
+                    ++aim_point_.x;
+                    d = d + d1;
+                }
+                else {
+                    d = d + d2;
+                }
             }
-            else {
-                d = d + A;
+        }
+        else {
+            int d = -(A<<1) + B;
+            int d1 = (B-A) << 1;  // 2*(B-A)
+            int d2 = -A << 1;      // -2*A
+            while (aim_point_.y >= end_point_.y) {
+                SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+                SDL_RenderDrawPoint(renderer, aim_point_.x, aim_point_.y);
+                --aim_point_.y;
+                if (d < 0) {
+                    ++aim_point_.x;
+                    d = d + d1;
+                }
+                else {
+                    d = d + d2;
+                }
+            }
+        }
+    }
+}
+
+// Breseham算法，和中点画线的算法差不多的思想
+// 但不是拿中点比较，而是直接根据直线上的点到像素格底部的距离大小判断
+// 直线更靠近上面还是下面，当然也经过了一系列的优化
+// 最主要的是不需要利用任何直线方程就能用的
+void ALGOLine::DrawLine_Bresenham(SDL_Renderer* renderer) {
+    if (p2_.x == p1_.x) {  // k不存在
+        ChosePointByY();
+        while (aim_point_.y <= end_point_.y) {
+            SDL_RenderDrawPoint(renderer, aim_point_.x, aim_point_.y);
+            aim_point_.y = aim_point_.y + 1;
+        }
+        return ;
+    }
+
+    if (p2_.y == p1_.y) {  // k = 0
+        ChosePointByX();
+        while (aim_point_.x <= end_point_.x) {
+            SDL_RenderDrawPoint(renderer, aim_point_.x, aim_point_.y);
+            aim_point_.x = aim_point_.x + 1;
+        }
+        return ;
+    }
+    
+    if (abs(p2_.y - p1_.y) < abs(p2_.x - p1_.x)) {
+        ChosePointByY();
+        int dx = abs(end_point_.x - aim_point_.x);
+        int dy = abs(end_point_.y - aim_point_.y);
+        int e = -dx;
+        int e1 = dy<<1;
+        int e2 = -dx<<1;
+
+        if (aim_point_.x < end_point_.x) {
+            while (aim_point_.x <= end_point_.x) {
+                SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+                SDL_RenderDrawPoint(renderer, aim_point_.x, aim_point_.y);
+                ++aim_point_.x;
+                e = e + e1;
+                if (e > 0) {
+                    ++aim_point_.y;
+                    e = e + e2;
+                }
+            }
+        }
+        else {
+            while (aim_point_.x >= end_point_.x) {
+                SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+                SDL_RenderDrawPoint(renderer, aim_point_.x, aim_point_.y);
+                --aim_point_.x;
+                e = e + e1;
+                if (e > 0) {
+                    ++aim_point_.y;
+                    e = e + e2;
+                }
+            }
+        }
+    }
+    else {
+        ChosePointByX();
+        int dx = abs(end_point_.x - aim_point_.x);
+        int dy = abs(end_point_.y - aim_point_.y);
+        int e = -dx;
+        int e1 = -dy<<1;
+        int e2 = dx<<1;
+
+        if (aim_point_.y < end_point_.y) {
+            while (aim_point_.y <= end_point_.y) {
+                SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+                SDL_RenderDrawPoint(renderer, aim_point_.x, aim_point_.y);
+                ++aim_point_.y;
+                e = e + e2;
+                if (e > 0) {
+                    ++aim_point_.x;
+                    e = e + e1;
+                }
+            }
+        }
+        else {
+            while (aim_point_.y >= end_point_.y) {
+                SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+                SDL_RenderDrawPoint(renderer, aim_point_.x, aim_point_.y);
+                --aim_point_.y;
+                e = e + e2;
+                if (e > 0) {
+                    ++aim_point_.x;
+                    e = e + e1;
+                }
             }
         }
     }

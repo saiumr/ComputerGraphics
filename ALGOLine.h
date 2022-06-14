@@ -9,7 +9,8 @@ class ALGOLine {
 private:
     enum LineWay {
         kDDA,
-        kMidPoint
+        kMidPoint, 
+        kBresenham
     };
 
     SDL_Point p1_, p2_;
@@ -23,6 +24,7 @@ private:
     void ChosePointByY();
     void DrawLine_DDA(SDL_Renderer* renderer);
     void DrawLine_MidPoint(SDL_Renderer* renderer);
+    void DrawLine_Bresenham(SDL_Renderer* renderer);
 
 public:
     ALGOLine();
