@@ -30,53 +30,43 @@ void ALGOLine::SwitchWay() {
     }
 }
 
-void ALGOLine::DrawLine(SDL_Renderer* renderer) {
-    (this->*draw_line_way_)(renderer);
+void ALGOLine::DrawLine(SDL_Renderer* renderer, int x1, int y1, int x2, int y2) {
+    (this->*draw_line_way_)(renderer, x1, y1, x2, y2);
 }
 
 // 选择x值小的作为起始点 0<=|k|<=1
-void ALGOLine::ChosePointByX() {
-    if (p1_.x < p2_.x) {
-        aim_point_.x = p1_.x;
-        aim_point_.y = p1_.y;
-        end_point_.x = p2_.x;
-        end_point_.y = p2_.y;
+void ALGOLine::ChosePointByX(const SDL_Point& p1, const SDL_Point& p2) {
+    if (p1.x < p2.x) {
+        aim_point_.x = p1.x;
+        aim_point_.y = p1.y;
+        end_point_.x = p2.x;
+        end_point_.y = p2.y;
     }
     else {
-        aim_point_.x = p2_.x;
-        aim_point_.y = p2_.y;
-        end_point_.x = p1_.x;
-        end_point_.y = p1_.y;
+        aim_point_.x = p2.x;
+        aim_point_.y = p2.y;
+        end_point_.x = p1.x;
+        end_point_.y = p1.y;
     }
 }
 
 // 选择y值小的作为起始点 |k| >= 1
-void ALGOLine::ChosePointByY() {
-    if (p1_.y < p2_.y) {
-        aim_point_.x = p1_.x;
-        aim_point_.y = p1_.y;
-        end_point_.x = p2_.x;
-        end_point_.y = p2_.y;
+void ALGOLine::ChosePointByY(const SDL_Point& p1, const SDL_Point& p2) {
+    if (p1.y < p2.y) {
+        aim_point_.x = p1.x;
+        aim_point_.y = p1.y;
+        end_point_.x = p2.x;
+        end_point_.y = p2.y;
     }
     else {
-        aim_point_.x = p2_.x;
-        aim_point_.y = p2_.y;
-        end_point_.x = p1_.x;
-        end_point_.y = p1_.y;
+        aim_point_.x = p2.x;
+        aim_point_.y = p2.y;
+        end_point_.x = p1.x;
+        end_point_.y = p1.y;
     }
 }
 
 void ALGOLine::IncresePointNum() { ++point_num_; }
-
-void ALGOLine::set_p1(unsigned int x, unsigned int y) {
-    p1_.x = x;
-    p1_.y = y;
-}
-
-void ALGOLine::set_p2(unsigned int x, unsigned int y) {
-    p2_.x = x;
-    p2_.y = y;
-}
 
 unsigned int ALGOLine::get_point_num() {
     return point_num_;
@@ -85,9 +75,11 @@ unsigned int ALGOLine::get_point_num() {
 // 利用斜截式方程 y = kx+b 把b当做0
 // y2 = y1+k, x2 = x1+1,  (|k| < 1)
 // y2 = y1+1, x2 = x1+1/k (|k| >= 1)  // 说明包含浮点数加法
-void ALGOLine::DrawLine_DDA(SDL_Renderer* renderer) {
-    if (p2_.x == p1_.x) {  // k = ∞
-        ChosePointByY();
+void ALGOLine::DrawLine_DDA(SDL_Renderer* renderer, int x1, int y1, int x2, int y2) {
+    SDL_Point p1 = {x1, y1};
+    SDL_Point p2 = {x2, y2};
+    if (p2.x == p1.x) {  // k = ∞
+        ChosePointByY(p1, p2);
         while (aim_point_.y <= end_point_.y) {
             SDL_RenderDrawPoint(renderer, aim_point_.x, aim_point_.y);
             aim_point_.y = aim_point_.y + 1;
@@ -95,8 +87,8 @@ void ALGOLine::DrawLine_DDA(SDL_Renderer* renderer) {
         return ;
     }
 
-    if (p2_.y == p1_.y) {  // k = 0
-        ChosePointByX();
+    if (p2.y == p1.y) {  // k = 0
+        ChosePointByX(p1, p2);
         while (aim_point_.x <= end_point_.x) {
             SDL_RenderDrawPoint(renderer, aim_point_.x, aim_point_.y);
             aim_point_.x = aim_point_.x + 1;
@@ -104,9 +96,9 @@ void ALGOLine::DrawLine_DDA(SDL_Renderer* renderer) {
         return ;
     }
 
-    float k = (float)(p2_.y - p1_.y) / (p2_.x - p1_.x);
+    float k = (float)(p2.y - p1.y) / (p2.x - p1.x);
     if (abs(k) < 1.0f) {
-        ChosePointByX();
+        ChosePointByX(p1, p2);
         float y = aim_point_.y;
         while (aim_point_.x <= end_point_.x) {
             SDL_RenderDrawPoint(renderer, aim_point_.x, aim_point_.y);
@@ -116,7 +108,7 @@ void ALGOLine::DrawLine_DDA(SDL_Renderer* renderer) {
         }
     }
     else {
-        ChosePointByY();
+        ChosePointByY(p1, p2);
         float x = aim_point_.x;
         while (aim_point_.y <= end_point_.y) {
             SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
@@ -136,9 +128,11 @@ void ALGOLine::DrawLine_DDA(SDL_Renderer* renderer) {
 // d0=2A+B, d1=d0+2A+2B y=y+1，或者d1=d0+2A y=y
 // 只需要d的符号
 // 注意笛卡尔坐标系y增长方向是往下，所以要把我们平时理解的下方向在这里当作上方向  
-void ALGOLine::DrawLine_MidPoint(SDL_Renderer *renderer) {
-    if (p2_.x == p1_.x) {  // k不存在
-        ChosePointByY();
+void ALGOLine::DrawLine_MidPoint(SDL_Renderer *renderer, int x1, int y1, int x2, int y2) {
+    SDL_Point p1 = {x1, y1};
+    SDL_Point p2 = {x2, y2};
+    if (p2.x == p1.x) {  // k不存在
+        ChosePointByY(p1, p2);
         while (aim_point_.y <= end_point_.y) {
             SDL_RenderDrawPoint(renderer, aim_point_.x, aim_point_.y);
             aim_point_.y = aim_point_.y + 1;
@@ -146,8 +140,8 @@ void ALGOLine::DrawLine_MidPoint(SDL_Renderer *renderer) {
         return ;
     }
 
-    if (p2_.y == p1_.y) {  // k = 0
-        ChosePointByX();
+    if (p2.y == p1.y) {  // k = 0
+        ChosePointByX(p1, p2);
         while (aim_point_.x <= end_point_.x) {
             SDL_RenderDrawPoint(renderer, aim_point_.x, aim_point_.y);
             aim_point_.x = aim_point_.x + 1;
@@ -155,8 +149,8 @@ void ALGOLine::DrawLine_MidPoint(SDL_Renderer *renderer) {
         return ;
     }
 
-    if (abs(p2_.y-p1_.y) < abs(p2_.x-p1_.x)) {  // |k|<1
-        ChosePointByY();  // 选择y坐标小的作为起始点，以x为步进方向，+1或者-1，y要么不变要么+1
+    if (abs(p2.y-p1.y) < abs(p2.x-p1.x)) {  // |k|<1
+        ChosePointByY(p1, p2);  // 选择y坐标小的作为起始点，以x为步进方向，+1或者-1，y要么不变要么+1
         int A = aim_point_.y - end_point_.y;
         int B = end_point_.x - aim_point_.x;
         if (B < 0) {       // 一般式y的系数>0时，计算结果<0点在直线下方
@@ -200,7 +194,7 @@ void ALGOLine::DrawLine_MidPoint(SDL_Renderer *renderer) {
         }
     }
     else {  // y为步进方向，x和y互换，此时 F = (x2-x1)y + (y1-y2)x + C
-        ChosePointByX(); 
+        ChosePointByX(p1, p2); 
         int A = end_point_.x - aim_point_.x;
         int B = aim_point_.y - end_point_.y;
         if (B < 0) {
@@ -249,9 +243,11 @@ void ALGOLine::DrawLine_MidPoint(SDL_Renderer *renderer) {
 // 但不是拿中点比较，而是直接根据直线上的点到像素格底部的距离大小判断
 // 直线更靠近上面还是下面，当然也经过了一系列的优化
 // 最主要的是不需要利用任何直线方程就能用的
-void ALGOLine::DrawLine_Bresenham(SDL_Renderer* renderer) {
-    if (p2_.x == p1_.x) {  // k不存在
-        ChosePointByY();
+void ALGOLine::DrawLine_Bresenham(SDL_Renderer* renderer, int x1, int y1, int x2, int y2) {
+    SDL_Point p1 = {x1, y1};
+    SDL_Point p2 = {x2, y2};
+    if (p2.x == p1.x) {  // k不存在
+        ChosePointByY(p1, p2);
         while (aim_point_.y <= end_point_.y) {
             SDL_RenderDrawPoint(renderer, aim_point_.x, aim_point_.y);
             aim_point_.y = aim_point_.y + 1;
@@ -259,8 +255,8 @@ void ALGOLine::DrawLine_Bresenham(SDL_Renderer* renderer) {
         return ;
     }
 
-    if (p2_.y == p1_.y) {  // k = 0
-        ChosePointByX();
+    if (p2.y == p1.y) {  // k = 0
+        ChosePointByX(p1, p2);
         while (aim_point_.x <= end_point_.x) {
             SDL_RenderDrawPoint(renderer, aim_point_.x, aim_point_.y);
             aim_point_.x = aim_point_.x + 1;
@@ -268,8 +264,8 @@ void ALGOLine::DrawLine_Bresenham(SDL_Renderer* renderer) {
         return ;
     }
     
-    if (abs(p2_.y - p1_.y) < abs(p2_.x - p1_.x)) {
-        ChosePointByY();
+    if (abs(p2.y - p1.y) < abs(p2.x - p1.x)) {
+        ChosePointByY(p1, p2);
         int dx = abs(end_point_.x - aim_point_.x);
         int dy = abs(end_point_.y - aim_point_.y);
         int e = -dx;
@@ -302,7 +298,7 @@ void ALGOLine::DrawLine_Bresenham(SDL_Renderer* renderer) {
         }
     }
     else {
-        ChosePointByX();
+        ChosePointByX(p1, p2);
         int dx = abs(end_point_.x - aim_point_.x);
         int dy = abs(end_point_.y - aim_point_.y);
         int e = -dx;

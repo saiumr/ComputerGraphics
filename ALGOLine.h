@@ -13,28 +13,25 @@ private:
         kBresenham
     };
 
-    SDL_Point p1_, p2_;
     SDL_Point aim_point_, end_point_;
     unsigned int point_num_;
     unsigned int switch_way_count_;
-    void (ALGOLine::*draw_line_way_)(SDL_Renderer*);
+    void (ALGOLine::*draw_line_way_)(SDL_Renderer*, int, int, int, int);
     const static uint8_t kTotalWays;
 
-    void ChosePointByX();
-    void ChosePointByY();
-    void DrawLine_DDA(SDL_Renderer* renderer);
-    void DrawLine_MidPoint(SDL_Renderer* renderer);
-    void DrawLine_Bresenham(SDL_Renderer* renderer);
+    void ChosePointByX(const SDL_Point& p1, const SDL_Point& p2);
+    void ChosePointByY(const SDL_Point& p1, const SDL_Point& p2);
+    void DrawLine_DDA(SDL_Renderer* renderer, int x1, int y1, int x2, int y2);
+    void DrawLine_MidPoint(SDL_Renderer* renderer, int x1, int y1, int x2, int y2);
+    void DrawLine_Bresenham(SDL_Renderer* renderer, int x1, int y1, int x2, int y2);
 
 public:
     ALGOLine();
     ~ALGOLine();
 
     void SwitchWay();
-    void DrawLine(SDL_Renderer* renderer);
+    void DrawLine(SDL_Renderer* renderer, int x1, int y1, int x2, int y2);
     void IncresePointNum();
-    void set_p1(unsigned int x, unsigned int y);
-    void set_p2(unsigned int x, unsigned int y);
     unsigned int get_point_num();
 };
 

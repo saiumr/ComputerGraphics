@@ -14,6 +14,7 @@ int main(int argc, char* argv[]) {
     SDL_Event event;
     bool is_quit = false;
     ALGOLine draw_line;
+    SDL_Point p1, p2;
     while (!is_quit) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
@@ -35,12 +36,13 @@ int main(int argc, char* argv[]) {
             if (event.type == SDL_MOUSEBUTTONDOWN) {
                 draw_line.IncresePointNum();
                 if (draw_line.get_point_num() % 2 == 0) {
-                    draw_line.set_p2(event.motion.x, event.motion.y);
-                    // (draw_line.*DrawLine)(renderer);
-                    draw_line.DrawLine(renderer);
+                    p2.x = event.motion.x;
+                    p2.y = event.motion.y;
+                    draw_line.DrawLine(renderer, p1.x, p1.y, p2.x, p2.y);
                 }
                 else {
-                    draw_line.set_p1(event.motion.x, event.motion.y);
+                    p1.x = event.motion.x;
+                    p1.y = event.motion.y;
                 }
             }
         }
