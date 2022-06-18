@@ -1,7 +1,15 @@
 #include <iostream>
 #include "ALGOLine.h"
+#include "SDL2/SDL_stdinc.h"
 
 using namespace std;
+
+// Computer Graphics Funtion
+enum CGF {
+    kDrawLine,
+    kXScanner
+};
+const static Uint8 kCGFNum = 2;
 
 int main(int argc, char* argv[]) {
     SDL_Window*     window = nullptr;
@@ -13,8 +21,10 @@ int main(int argc, char* argv[]) {
 
     SDL_Event event;
     bool is_quit = false;
+    Uint8 switch_function = 0;
+
     ALGOLine draw_line;
-    SDL_Point p1, p2;
+
     while (!is_quit) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
@@ -28,26 +38,21 @@ int main(int argc, char* argv[]) {
                     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
                     SDL_RenderClear(renderer);
                 }
-                if (event.key.keysym.sym == SDLK_s) {
-                    draw_line.SwitchWay();
+                if (event.key.keysym.sym == SDLK_a) {
+                    ++switch_function;
                 }
-
             }
-            if (event.type == SDL_MOUSEBUTTONDOWN) {
-                draw_line.IncresePointNum();
-                if (draw_line.get_point_num() % 2 == 0) {
-                    p2.x = event.motion.x;
-                    p2.y = event.motion.y;
-                    draw_line.DrawLine(renderer, p1.x, p1.y, p2.x, p2.y);
-                }
-                else {
-                    p1.x = event.motion.x;
-                    p1.y = event.motion.y;
-                }
+            switch (switch_function % kCGFNum) {
+            case kDrawLine:
+                draw_line.EventHandle(event, renderer);
+                break;
+            case kXScanner:
+                break;
+            default:
+                break;
             }
         }
 
-        //SDL_RenderClear(renderer);
         SDL_RenderPresent(renderer);
         SDL_Delay(100);
     }

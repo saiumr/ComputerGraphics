@@ -1,4 +1,5 @@
 #include "ALGOLine.h"
+#include "SDL2/SDL_events.h"
 #include "SDL2/SDL_rect.h"
 #include "SDL2/SDL_render.h"
 #include <cstdint>
@@ -34,6 +35,27 @@ void ALGOLine::DrawLine(SDL_Renderer* renderer, int x1, int y1, int x2, int y2) 
     (this->*draw_line_way_)(renderer, x1, y1, x2, y2);
 }
 
+void ALGOLine::EventHandle(SDL_Event& event, SDL_Renderer* renderer) {
+    if (event.type == SDL_KEYDOWN) {
+        if (event.key.keysym.sym == SDLK_s) {
+            SwitchWay();
+        }
+    }
+
+    if (event.type == SDL_MOUSEBUTTONDOWN) {
+        ++point_num_;
+        if (point_num_ % 2 == 0) {
+            end_point_.x = event.motion.x;
+            end_point_.y = event.motion.y;
+            DrawLine(renderer, aim_point_.x, aim_point_.y, end_point_.x, end_point_.y);
+        }
+        else {
+            aim_point_.x = event.motion.x;
+            aim_point_.y = event.motion.y;
+        }
+    }
+}
+
 // 选择x值小的作为起始点 0<=|k|<=1
 void ALGOLine::ChosePointByX(const SDL_Point& p1, const SDL_Point& p2) {
     if (p1.x < p2.x) {
@@ -64,12 +86,6 @@ void ALGOLine::ChosePointByY(const SDL_Point& p1, const SDL_Point& p2) {
         end_point_.x = p1.x;
         end_point_.y = p1.y;
     }
-}
-
-void ALGOLine::IncresePointNum() { ++point_num_; }
-
-unsigned int ALGOLine::get_point_num() {
-    return point_num_;
 }
 
 // 利用斜截式方程 y = kx+b 把b当做0

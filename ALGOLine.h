@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SDL2/SDL_events.h"
 #include "SDL2/SDL_render.h"
 #include <SDL2/SDL.h>
 #include <cmath>
@@ -19,20 +20,20 @@ private:
     void (ALGOLine::*draw_line_way_)(SDL_Renderer*, int, int, int, int);
     const static uint8_t kTotalWays;
 
+    void SwitchWay();
+
     void ChosePointByX(const SDL_Point& p1, const SDL_Point& p2);
     void ChosePointByY(const SDL_Point& p1, const SDL_Point& p2);
     void DrawLine_DDA(SDL_Renderer* renderer, int x1, int y1, int x2, int y2);
     void DrawLine_MidPoint(SDL_Renderer* renderer, int x1, int y1, int x2, int y2);
     void DrawLine_Bresenham(SDL_Renderer* renderer, int x1, int y1, int x2, int y2);
+    void DrawLine(SDL_Renderer* renderer, int x1, int y1, int x2, int y2);
 
 public:
     ALGOLine();
     ~ALGOLine();
 
-    void SwitchWay();
-    void DrawLine(SDL_Renderer* renderer, int x1, int y1, int x2, int y2);
-    void IncresePointNum();
-    unsigned int get_point_num();
+    void EventHandle(SDL_Event& event, SDL_Renderer* renderer);
 };
 
 
