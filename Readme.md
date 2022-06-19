@@ -41,3 +41,7 @@ class ALGOLine：绘制直线的算法类
 + DDA直线算法（Red Line）  
 + 中点画线算法（Green Line）  
 + Bresenham直线算法（Blue Line）  
+
+#### XScanner：填充算法  
++ X扫描线算法，参考[金戈大王的博客](https://www.jianshu.com/p/d9be99077c2b)  
+

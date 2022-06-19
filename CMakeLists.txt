@@ -5,7 +5,13 @@ project(gal)
 set(CMAKE_CXX_COMPILER "g++")
 set(CMAKE_CXX_STANDARD 14)
 
-set(SRCS main.cpp ALGOLine.cpp)
+set(SRCS 
+    main.cpp 
+    ALGOLine.cpp 
+    XScanner.cpp
+
+    )
+#aux_source_directory(. SRCS)
 set(SDL2_DIR D:/softwares/SDL_lib/SDL2)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 

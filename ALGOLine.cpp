@@ -10,8 +10,8 @@ const uint8_t ALGOLine::kTotalWays= 3;
 
 ALGOLine::ALGOLine()  { 
     point_num_ = 0;
-    switch_way_count_ = 0;
-    draw_line_way_ = &ALGOLine::DrawLine_DDA;
+    switch_way_count_ = kBresenham;
+    draw_line_way_ = &ALGOLine::DrawLine_Bresenham;
 }
 
 ALGOLine::~ALGOLine() { }

@@ -27,12 +27,12 @@ private:
     void DrawLine_DDA(SDL_Renderer* renderer, int x1, int y1, int x2, int y2);
     void DrawLine_MidPoint(SDL_Renderer* renderer, int x1, int y1, int x2, int y2);
     void DrawLine_Bresenham(SDL_Renderer* renderer, int x1, int y1, int x2, int y2);
-    void DrawLine(SDL_Renderer* renderer, int x1, int y1, int x2, int y2);
 
 public:
     ALGOLine();
     ~ALGOLine();
 
+    void DrawLine(SDL_Renderer* renderer, int x1, int y1, int x2, int y2);
     void EventHandle(SDL_Event& event, SDL_Renderer* renderer);
 };
 

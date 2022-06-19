@@ -1,6 +1,7 @@
 #include <iostream>
-#include "ALGOLine.h"
 #include "SDL2/SDL_stdinc.h"
+#include "ALGOLine.h"
+#include "XScanner.h"
 
 using namespace std;
 
@@ -24,12 +25,14 @@ int main(int argc, char* argv[]) {
     Uint8 switch_function = 0;
 
     ALGOLine draw_line;
+    XScanner xscanner;
 
     while (!is_quit) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 is_quit = true;
             }
+
             if (event.type == SDL_KEYDOWN) {
                 if (event.key.keysym.sym == SDLK_q) {
                     is_quit = true;
@@ -42,11 +45,13 @@ int main(int argc, char* argv[]) {
                     ++switch_function;
                 }
             }
+
             switch (switch_function % kCGFNum) {
             case kDrawLine:
                 draw_line.EventHandle(event, renderer);
                 break;
             case kXScanner:
+                xscanner.EventHandle(event, renderer);
                 break;
             default:
                 break;
