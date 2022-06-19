@@ -12,7 +12,7 @@ XScanner::~XScanner() {
 }
 
 void XScanner::XScannerAlgorithm(SDL_Renderer *renderer) {
-    //计算最高点的y坐标
+    // 计算最高点的y坐标
     int maxY = 0;
     for (int i = 0; i < points_.size(); i++) {
         if (points_[i].y > maxY) {
@@ -20,7 +20,7 @@ void XScanner::XScannerAlgorithm(SDL_Renderer *renderer) {
         }
     }
   
-    //初始化NET和AET_
+    // 初始化NET和AET_
     for (int i = 0; i < maxY; i++) {
         NET_[i] = new Edge;
         NET_[i]->next = nullptr;
@@ -31,9 +31,9 @@ void XScanner::XScannerAlgorithm(SDL_Renderer *renderer) {
     // 设置画点颜色为白色
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     
-    // 建立NET_
+    // 建立NET_，有几个点就有几条边
     for (int i = 0; i < points_.size(); i++) {
-        //取出当前点1前后相邻的共4个点，点1与点2的连线作为本次循环处理的边，另外两个点点0和点3用于计算奇点
+        // 取出当前点1前后相邻的共4个点，点1与点2的连线作为本次循环处理的边，另外两个点点0和点3用于计算奇点
         int x0 = points_[(i - 1 + points_.size()) % points_.size()].x;
         int x1 = points_[i].x;
         int x2 = points_[(i + 1) % points_.size()].x;
@@ -43,24 +43,27 @@ void XScanner::XScannerAlgorithm(SDL_Renderer *renderer) {
         int y2 = points_[(i + 1) % points_.size()].y;
         int y3 = points_[(i + 2) % points_.size()].y;
         
-        //水平线直接舍弃
+        // 水平线不用后续处理
         if (y1 == y2)
             continue;
         
-        //分别计算下端点y坐标、上端点y坐标、下端点x坐标和斜率倒数
+        // 分别计算下端点y坐标、上端点y坐标、下端点x坐标和斜率倒数
         int ymin = y1 > y2 ? y2 : y1;
         int ymax = y1 > y2 ? y1 : y2;
         float x = y1 > y2 ? x2 : x1;
         float dx = (x1 - x2) * 1.0f / (y1 - y2);
     
-        //奇点特殊处理，若点2->1->0的y坐标单调递减则y1为奇点，若点1->2->3的y坐标单调递减则y2为奇点
+        // 扫描线处在的当前顶点相连的两条边分别在扫描线两侧，当前的顶点只能算作一个顶点
+        // 意思是扫描线只在这个顶点这里处理一次
+        // 不作此处理的话任何相交的顶点都是当作两个顶点的（默认是两条边的两个顶点相交在一起，合情合理）
+        // 奇点特殊处理，若点2->1->0的y坐标单调递减则y1为奇点，若点1->2->3的y坐标单调递减则y2为奇点
         if (((y1 < y2) && (y1 > y0)) || ((y2 < y1) && (y2 > y3))) {
-            ymin++;
+            ++ymin;
             x += dx;
         }
     
-        //创建新边，插入NET_
-        Edge *p = new Edge;
+        // 创建新边，插入NET_
+        Edge* p = new Edge;
         p->ymax = ymax;
         p->x = x;
         p->dx = dx;
@@ -68,15 +71,16 @@ void XScanner::XScannerAlgorithm(SDL_Renderer *renderer) {
         NET_[ymin]->next = p;
     }
   
-    //扫描线从下往上扫描，y坐标每次加1
-    for (int i=0; i<maxY; i++) {
-        //取出ET中当前扫描行的所有边并按x的递增顺序（若x相等则按dx的递增顺序）插入AET_
+    // 扫描线从下往上扫描，y坐标每次加1
+    for (int i = 0; i < maxY; ++i) {
+        // 取出NET_中当前扫描行的所有边并按x的递增顺序（若x相等则按dx的递增顺序）插入AET_
+        // 插入排序
         while (NET_[i]->next) {
-            //取出ET中当前扫描行表头位置的边
-            Edge *pInsert = NET_[i]->next;
-            Edge *p = AET_;
+            // 取出NET_中当前扫描行表头位置的边
+            Edge* pInsert = NET_[i]->next;
+            Edge* p = AET_;
             
-            //在AET_中搜索合适的插入位置
+            // 在AET_中搜索合适的插入位置
             while (p->next) {
                 if (pInsert->x > p->next->x) {
                     p = p->next;
@@ -87,30 +91,30 @@ void XScanner::XScannerAlgorithm(SDL_Renderer *renderer) {
                     continue;
                 }
             
-                //找到位置
+                // 找到位置
                 break;
             }
       
-            //将pInsert从NET_中删除，并插入AET_的当前位置
+            // 将pInsert从NET_中删除，并插入AET_的当前位置（从NET_中移入AET_）
             NET_[i]->next = pInsert->next;
-            pInsert->next = p->next;
+            pInsert->next = p->next;  // p  pInsert  p->next
             p->next = pInsert;
         }
     
         //AET_中的边两两配对并填色
-        Edge *p = AET_;
+        Edge* p = AET_;
         while (p->next && p->next->next) {
-            for (int x = p->next->x; x < p->next->next->x; x++) {
+            for (int x = p->next->x; x < p->next->next->x; ++x) {
                 SDL_RenderDrawPoint(renderer, x, i);
             }
             p = p->next->next;
         }
     
-        //删除AET_中满足y=ymax的边
+        // 删除AET_中满足y=ymax的边
         p = AET_;
         while (p->next) {
             if (p->next->ymax == i) {
-                Edge *pDelete = p->next;
+                Edge* pDelete = p->next;
                 p->next = pDelete->next;
                 pDelete->next = nullptr;
                 delete pDelete;
@@ -120,13 +124,16 @@ void XScanner::XScannerAlgorithm(SDL_Renderer *renderer) {
             }
         }
     
-        //更新AET_中边的x值，进入下一循环
+        // 更新AET_中边的x值，进入下一循环
         p = AET_;
         while (p->next) {
             p->next->x += p->next->dx;
             p = p->next;
         }
     }
+
+    // delete AET_
+    delete AET_;
 }
 
 void XScanner::EventHandle(SDL_Event& event, SDL_Renderer* renderer) {
